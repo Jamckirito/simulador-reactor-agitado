@@ -184,6 +184,43 @@
   }
   #warning-banner.show { display: flex; }
 
+  /* FLOW PATTERN ANNOTATIONS OVERLAY */
+  #flow-annotations {
+    position: absolute; inset: 0; pointer-events: none; z-index: 15;
+    transition: opacity 0.3s ease;
+  }
+  #flow-annotations.hidden { opacity: 0; pointer-events: none; }
+
+  .flow-badge {
+    position: absolute; display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border-radius: 6px; font-family: var(--font-b);
+    font-weight: 700; font-size: 11.5px; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(6px); transition: transform 0.2s ease, opacity 0.3s ease;
+    animation: floatBadge 3.5s ease-in-out infinite alternate;
+  }
+
+  @keyframes floatBadge {
+    0% { transform: translateY(0px); }
+    100% { transform: translateY(-5px); }
+  }
+
+  .badge-blue {
+    background: #1890ff; color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.4);
+  }
+  .badge-green {
+    background: #52c41a; color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.4);
+  }
+  .badge-yellow {
+    background: #fadb14; color: #1f1f1f; border: 1px solid rgba(0, 0, 0, 0.2);
+  }
+  .badge-white {
+    background: #ffffff; color: #1f1f1f; border: 1px solid rgba(0, 0, 0, 0.3);
+  }
+
+  .badge-arrow-svg {
+    position: absolute; overflow: visible; pointer-events: none;
+  }
+
   #hint {
     position: absolute; bottom: 10px; right: 10px; font-size: 9.5px; color: var(--text-dim);
     background: rgba(13, 22, 39, 0.8); padding: 4px 7px; border-radius: 4px; border: 1px solid var(--line-soft);
@@ -522,6 +559,61 @@
   <div id="center" class="mobile-active">
     <div id="canvas-wrap"></div>
 
+    <!-- FLOW ANNOTATIONS MATCHING REFERENCE IMAGE -->
+    <div id="flow-annotations">
+      <!-- Callout 1: Partículas del fluido -->
+      <div class="flow-badge badge-blue" style="top: 18%; left: 8%;">
+        <span>Partículas del fluido</span>
+        <svg class="badge-arrow-svg" style="left: 100%; top: 50%; width: 60px; height: 35px;">
+          <path d="M 0 0 L 50 25" stroke="#1890ff" stroke-width="2.5" marker-end="url(#arrow-blue-head)" fill="none" />
+          <defs>
+            <marker id="arrow-blue-head" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#1890ff"/>
+            </marker>
+          </defs>
+        </svg>
+      </div>
+
+      <!-- Callout 2: Flujo descendente por las paredes -->
+      <div class="flow-badge badge-green" style="top: 48%; left: 6%;">
+        <span>Flujo descendente por las paredes</span>
+        <svg class="badge-arrow-svg" style="left: 100%; top: 50%; width: 60px; height: 35px;">
+          <path d="M 0 0 L 50 20" stroke="#52c41a" stroke-width="2.5" marker-end="url(#arrow-green-head)" fill="none" />
+          <defs>
+            <marker id="arrow-green-head" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#52c41a"/>
+            </marker>
+          </defs>
+        </svg>
+      </div>
+
+      <!-- Callout 3: Flujo ascendente cerca del eje -->
+      <div class="flow-badge badge-yellow" style="top: 24%; right: 12%;">
+        <svg class="badge-arrow-svg" style="right: 100%; top: 50%; width: 60px; height: 35px;">
+          <path d="M 60 0 L 10 25" stroke="#fadb14" stroke-width="2.5" marker-end="url(#arrow-yellow-head)" fill="none" />
+          <defs>
+            <marker id="arrow-yellow-head" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#fadb14"/>
+            </marker>
+          </defs>
+        </svg>
+        <span>Flujo ascendente cerca del eje</span>
+      </div>
+
+      <!-- Callout 4: Patrón de flujo completo -->
+      <div class="flow-badge badge-white" style="bottom: 24%; right: 10%;">
+        <svg class="badge-arrow-svg" style="right: 100%; top: 50%; width: 60px; height: 35px;">
+          <path d="M 60 0 L 10 22" stroke="#ffffff" stroke-width="2.5" marker-end="url(#arrow-white-head)" fill="none" />
+          <defs>
+            <marker id="arrow-white-head" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#ffffff"/>
+            </marker>
+          </defs>
+        </svg>
+        <span>Patrón de flujo completo</span>
+      </div>
+    </div>
+
     <div id="guide-panel">
       <div class="gp-head">
         <h2>Guía del Reactor Agitado y Mezclado</h2>
@@ -561,6 +653,7 @@
     <div id="3d-toggles">
       <button class="toggle-btn guide" id="guide-toggle">📖 Guía Teórica</button>
       <button class="toggle-btn active" id="toggle-particles">✨ Partículas</button>
+      <button class="toggle-btn active" id="toggle-flow-labels">🏷️ Etiquetas de Flujo</button>
       <button class="toggle-btn" id="toggle-donuts">🍩 Zonas muertas</button>
       <button class="toggle-btn active" id="toggle-probe">📍 Sonda</button>
     </div>
@@ -920,10 +1013,10 @@ function buildLiquid() {
   const sub = SUBSTANCES[state.sustancia];
   const mat = new THREE.MeshPhysicalMaterial({
     color: sub.colorLiquid, transparent: true,
-    opacity: state.sustancia === 'pintura' ? 0.94 : 0.55,
-    roughness: state.sustancia === 'pintura' ? 0.55 : 0.15,
-    metalness: 0.05, transmission: state.sustancia === 'pintura' ? 0.05 : 0.35,
-    side: THREE.DoubleSide
+    opacity: state.sustancia === 'pintura' ? 0.85 : 0.18,
+    roughness: state.sustancia === 'pintura' ? 0.55 : 0.10,
+    metalness: 0.05, transmission: state.sustancia === 'pintura' ? 0.05 : 0.85,
+    side: THREE.DoubleSide, depthWrite: false
   });
 
   const geo = new THREE.CylinderGeometry(R, R, liqH, 48, 1, false);
@@ -1119,12 +1212,12 @@ function buildProbeMarker() {
   tankGroup.add(probeMesh);
 }
 
-const PARTICLE_COUNT = 900;
+const PARTICLE_COUNT = 2400;
 let particlePositions, particleColors;
 
 function buildParticles() {
   if (particleSystem) tankGroup.remove(particleSystem);
-  const R = tankRadius() * 0.93;
+  const R = tankRadius() * 0.94;
   const liqTop = tankHeight() * (state.nivel / 100);
 
   const geo = new THREE.BufferGeometry();
@@ -1142,7 +1235,9 @@ function buildParticles() {
   geo.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
   geo.setAttribute('color', new THREE.BufferAttribute(particleColors, 3));
 
-  const mat = new THREE.PointsMaterial({ size: 0.036, vertexColors: true, transparent: true, opacity: 0.90 });
+  const mat = new THREE.PointsMaterial({
+    size: 0.048, vertexColors: true, transparent: true, opacity: 0.98, depthWrite: false
+  });
   particleSystem = new THREE.Points(geo, mat);
   particleSystem.visible = state.showParticles;
   tankGroup.add(particleSystem);
@@ -1151,35 +1246,50 @@ function buildParticles() {
 function velocityField(x, y, z, physics, impY_avg) {
   const r = Math.sqrt(x * x + z * z) + 1e-5;
   const th = Math.atan2(z, x);
-  const D = physics.D * SCALE;
+  const R = tankRadius() * 0.94;
+  const H = tankHeight() * (state.nivel / 100);
   const dirSign = state.sentido === 'horario' ? -1 : 1;
 
-  const omega = (state.rpm / 60) * 2 * Math.PI * physics.speedRatio * 0.14;
-  const viscDamp = THREE.MathUtils.clamp(1 / (1 + physics.mu_app * 2.2), 0.2, 1);
+  const omega = (state.rpm / 60) * 2 * Math.PI * physics.speedRatio * 0.16;
+  const viscDamp = THREE.MathUtils.clamp(1 / (1 + physics.mu_app * 1.8), 0.25, 1);
   const swirl = physics.swirl;
+
+  const rNorm = THREE.MathUtils.clamp(r / R, 0.001, 0.999);
+  const yNorm = THREE.MathUtils.clamp(y / H, 0.001, 0.999);
 
   let vr = 0, vt = 0, vy = 0;
 
-  if (physics.circType === 'axial') {
-    const nearAxis = r < D * 0.9;
-    vy = (nearAxis ? -1 : 0.55) * omega * 1.6 * viscDamp;
-    vr = (nearAxis ? 0.15 : -0.25) * omega * viscDamp;
+  if (physics.circType === 'axial' || physics.circType === 'mixta') {
+    // Primary toroidal circulation loop matching reference image (UP near shaft, DOWN at walls)
+    const vBase = omega * 0.95 * viscDamp;
+    vy = vBase * (1.0 - 2.1 * rNorm * rNorm) * Math.sin(Math.PI * yNorm);
+    vr = -vBase * (Math.PI * R / H) * rNorm * (1.0 - rNorm * rNorm) * Math.cos(Math.PI * yNorm);
   } else if (physics.circType === 'radial') {
-    const nearImp = Math.abs(y - impY_avg) < D * 0.9;
-    vr = (nearImp ? 1.0 : 0.25) * omega * 1.5 * viscDamp;
-    vy = (y > impY_avg ? 1 : -1) * (nearImp ? 0.15 : 0.7) * omega * viscDamp;
-  } else if (physics.circType === 'mixta') {
-    const nearAxis = r < D * 0.85;
-    vy = (nearAxis ? -0.7 : 0.45) * omega * 1.4 * viscDamp;
-    vr = 0.55 * omega * viscDamp * (nearAxis ? 0.3 : -0.35);
+    // Double toroidal loop (pumping outward from impeller)
+    const yImpNorm = THREE.MathUtils.clamp(impY_avg / H, 0.1, 0.9);
+    const dy = yNorm - yImpNorm;
+    const vBase = omega * 1.0 * viscDamp;
+
+    if (Math.abs(dy) < 0.12) {
+      vr = vBase * (1.0 - rNorm * 0.3);
+      vy = dy * vBase * 3.0;
+    } else if (yNorm > yImpNorm) {
+      vy = vBase * (1.0 - 2.0 * rNorm * rNorm) * Math.sin(Math.PI * (yNorm - yImpNorm) / (1 - yImpNorm));
+      vr = -vBase * Math.cos(Math.PI * (yNorm - yImpNorm) / (1 - yImpNorm)) * rNorm * (1 - rNorm);
+    } else {
+      vy = -vBase * (1.0 - 2.0 * rNorm * rNorm) * Math.sin(Math.PI * yNorm / yImpNorm);
+      vr = vBase * Math.cos(Math.PI * yNorm / yImpNorm) * rNorm * (1 - rNorm);
+    }
   } else {
-    vy = 0.10 * omega * viscDamp * Math.sign(Math.sin(th * 2 + y * 3));
-    vr = 0.03 * omega * viscDamp;
+    // Tangential dominance with vertical loop
+    const vBase = omega * 0.5 * viscDamp;
+    vy = vBase * (1.0 - 2.0 * rNorm * rNorm) * Math.sin(Math.PI * yNorm);
+    vr = -vBase * 0.5 * rNorm * (1.0 - rNorm * rNorm) * Math.cos(Math.PI * yNorm);
   }
 
-  const tangBase = physics.circType === 'tangencial' ? 1.0 : 0.55;
-  vt = dirSign * omega * (tangBase * (1 - 0.7 * (1 - swirl)) + swirl * 0.5) * (0.6 + 0.4 * viscDamp);
-  vt += dirSign * omega * swirl * 0.9;
+  // Tangential velocity (swirl rotation around shaft)
+  const tangMult = physics.circType === 'tangencial' ? 1.2 : 0.65;
+  vt = dirSign * omega * rNorm * tangMult * (1.0 - 0.5 * (1.0 - swirl));
 
   const vx = Math.cos(th) * vr - Math.sin(th) * vt;
   const vz = Math.sin(th) * vr + Math.cos(th) * vt;
@@ -1190,33 +1300,54 @@ function updateParticles(dt, physics) {
   if (!state.showParticles) return;
   const pos = particleSystem.geometry.attributes.position;
   const col = particleSystem.geometry.attributes.color;
-  const R = tankRadius() * 0.95;
-  const liqTop = tankHeight() * (state.nivel / 100) - 0.02;
+  const R = tankRadius() * 0.94;
+  const liqHeight = tankHeight() * (state.nivel / 100);
+  const liqTop = liqHeight - 0.02;
   const liqBot = 0.03;
-  const impYs = impellerYPositions(state.numimp, state.posicion, tankHeight() * (state.nivel / 100));
+  const impYs = impellerYPositions(state.numimp, state.posicion, liqHeight);
   const impYavg = impYs.reduce((a, b) => a + b, 0) / impYs.length;
 
   const speedMul = state.running ? 1 : 0;
-  const jitter = physics.regime === 'turbulento' ? 0.006 : (physics.regime === 'transicional' ? 0.002 : 0.0002);
+  const jitter = physics.regime === 'turbulento' ? 0.004 : (physics.regime === 'transicional' ? 0.0015 : 0.0001);
 
   for (let i = 0; i < PARTICLE_COUNT; i++) {
     let x = pos.array[i * 3], y = pos.array[i * 3 + 1], z = pos.array[i * 3 + 2];
     const v = velocityField(x, y, z, physics, impYavg);
+
     x += v.vx * dt * speedMul + (Math.random() - 0.5) * jitter;
     y += v.vy * dt * speedMul + (Math.random() - 0.5) * jitter;
     z += v.vz * dt * speedMul + (Math.random() - 0.5) * jitter;
 
-    const r = Math.sqrt(x * x + z * z);
-    if (r > R) { const k = R / r; x *= k; z *= k; }
+    let r = Math.sqrt(x * x + z * z);
+    if (r > R) { const k = R / r; x *= k; z *= k; r = R; }
     if (y > liqTop) { y = liqTop - 0.005; }
     if (y < liqBot) { y = liqBot + 0.005; }
 
     pos.array[i * 3] = x; pos.array[i * 3 + 1] = y; pos.array[i * 3 + 2] = z;
 
-    const speedMag = Math.min(1, (Math.abs(v.vx) + Math.abs(v.vy) + Math.abs(v.vz)) * 6);
-    col.array[i * 3]     = 0.0 + speedMag * 1.0;
-    col.array[i * 3 + 1] = 0.95 - speedMag * 0.45;
-    col.array[i * 3 + 2] = 1.0 - speedMag * 0.8;
+    // COLOR GRADIENT MATCHING REFERENCE IMAGE:
+    // Upward flow near shaft => Vibrant Golden Yellow (#ffeb3b)
+    // Transition flow => Lime Green
+    // Downward flow near wall => Bright Cyan Blue (#00f2fe)
+    const rNorm = THREE.MathUtils.clamp(r / R, 0, 1);
+    const axisWeight = THREE.MathUtils.clamp(1.0 - rNorm / 0.72, 0, 1);
+
+    let cr, cg, cb;
+    if (axisWeight > 0.4) {
+      const k = (axisWeight - 0.4) / 0.6;
+      cr = THREE.MathUtils.lerp(0.25, 1.0, k);
+      cg = THREE.MathUtils.lerp(0.95, 0.92, k);
+      cb = THREE.MathUtils.lerp(0.15, 0.05, k);
+    } else {
+      const k = axisWeight / 0.4;
+      cr = THREE.MathUtils.lerp(0.0, 0.25, k);
+      cg = THREE.MathUtils.lerp(0.85, 0.95, k);
+      cb = THREE.MathUtils.lerp(1.0, 0.15, k);
+    }
+
+    col.array[i * 3]     = cr;
+    col.array[i * 3 + 1] = cg;
+    col.array[i * 3 + 2] = cb;
   }
   pos.needsUpdate = true;
   col.needsUpdate = true;
@@ -1565,6 +1696,12 @@ function setupUI() {
     state.showParticles = !state.showParticles;
     this.classList.toggle('active', state.showParticles);
     if (particleSystem) particleSystem.visible = state.showParticles;
+  });
+  document.getElementById('toggle-flow-labels').addEventListener('click', function() {
+    const overlay = document.getElementById('flow-annotations');
+    if (!overlay) return;
+    const isHidden = overlay.classList.toggle('hidden');
+    this.classList.toggle('active', !isHidden);
   });
   document.getElementById('toggle-donuts').addEventListener('click', function() {
     state.showDonuts = !state.showDonuts;
