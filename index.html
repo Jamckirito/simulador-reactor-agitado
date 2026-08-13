@@ -454,6 +454,19 @@
       <button class="preset-btn" id="pre-overload">⚠ Sobrecarga Motor</button>
     </div>
 
+    <div class="field" style="margin-top: 12px; margin-bottom: 6px;">
+      <div class="field-label">
+        <span class="lbl">🌊 Patrón de flujo</span>
+        <button class="info-btn" data-key="patron-flujo">i</button>
+      </div>
+      <select id="p-patron-flujo">
+        <option value="axial">Axial (Flujo vertical / Hélice)</option>
+        <option value="radial">Radial (Flujo lateral / Rushton)</option>
+        <option value="tangencial">Tangencial (Vórtice / Sin bafles)</option>
+        <option value="mixto">Mixto (Flujo mixto / Palas inclinadas)</option>
+      </select>
+    </div>
+
     <div class="divider"></div>
 
     <div class="field">
@@ -553,6 +566,8 @@
         <option value="10">10 HP (7.46 kW)</option>
       </select>
     </div>
+
+
   </div>
 
   <!-- CENTER: 3D -->
@@ -576,7 +591,7 @@
 
       <!-- Callout 2: Flujo descendente por las paredes -->
       <div class="flow-badge badge-green" style="top: 48%; left: 6%;">
-        <span>Flujo descendente por las paredes</span>
+        <span id="lbl-flow-down">Flujo descendente por las paredes</span>
         <svg class="badge-arrow-svg" style="left: 100%; top: 50%; width: 60px; height: 35px;">
           <path d="M 0 0 L 50 20" stroke="#52c41a" stroke-width="2.5" marker-end="url(#arrow-green-head)" fill="none" />
           <defs>
@@ -597,7 +612,7 @@
             </marker>
           </defs>
         </svg>
-        <span>Flujo ascendente cerca del eje</span>
+        <span id="lbl-flow-up">Flujo ascendente cerca del eje</span>
       </div>
 
       <!-- Callout 4: Patrón de flujo completo -->
@@ -610,7 +625,7 @@
             </marker>
           </defs>
         </svg>
-        <span>Patrón de flujo completo</span>
+        <span id="lbl-flow-full">Patrón de flujo completo</span>
       </div>
     </div>
 
@@ -1025,6 +1040,16 @@ function buildLiquid() {
   tankGroup.add(liquidMesh);
 
   const topMat = new THREE.MeshPhysicalMaterial({ color: sub.colorLiquidTop, transparent: true, opacity: 0.65, side: THREE.DoubleSide });
+  topMat.onBeforeCompile = (shader) => {
+    shader.vertexShader = shader.vertexShader.replace(
+      'void main() {',
+      'varying vec3 vLocalPosition;\nvoid main() {\nvLocalPosition = position;'
+    );
+    shader.fragmentShader = shader.fragmentShader.replace(
+      'void main() {',
+      'varying vec3 vLocalPosition;\nvoid main() {\nif (length(vLocalPosition.xz) > ' + R.toFixed(5) + ') {\ndiscard;\n}'
+    );
+  };
   const topGeo = new THREE.PlaneGeometry(R * 2, R * 2, 32, 32);
   topGeo.rotateX(-Math.PI / 2);
 
@@ -1617,6 +1642,41 @@ function recompute() {
   drawNpReChart(physics.Re, physics.Np, physics.regime, state.bafles, state.impulsor);
   updateProbeMarkerPosition(physics);
 
+  let currentPattern = 'mixto';
+  if (state.bafles === 0) {
+    currentPattern = 'tangencial';
+  } else {
+    if (physics.circType === 'axial') currentPattern = 'axial';
+    else if (physics.circType === 'radial') currentPattern = 'radial';
+    else if (physics.circType === 'mixta') currentPattern = 'mixto';
+    else if (physics.circType === 'tangencial') currentPattern = 'tangencial';
+  }
+  const patronSelect = document.getElementById('p-patron-flujo');
+  if (patronSelect) patronSelect.value = currentPattern;
+
+  const lblDown = document.getElementById('lbl-flow-down');
+  const lblUp = document.getElementById('lbl-flow-up');
+  const lblFull = document.getElementById('lbl-flow-full');
+  if (lblDown && lblUp && lblFull) {
+    if (currentPattern === 'axial') {
+      lblDown.textContent = 'Flujo descendente por las paredes';
+      lblUp.textContent = 'Flujo ascendente cerca del eje';
+      lblFull.textContent = 'Patrón de flujo axial (bucle único)';
+    } else if (currentPattern === 'radial') {
+      lblDown.textContent = 'Flujo proyectado hacia las paredes';
+      lblUp.textContent = 'Retorno central al impulsor';
+      lblFull.textContent = 'Patrón de flujo radial (doble bucle)';
+    } else if (currentPattern === 'tangencial') {
+      lblDown.textContent = 'Flujo circular giratorio sin mezcla';
+      lblUp.textContent = 'Vórtice central (deformación)';
+      lblFull.textContent = 'Patrón tangencial (baja mezcla vertical)';
+    } else { // mixto
+      lblDown.textContent = 'Flujo descendente secundario';
+      lblUp.textContent = 'Flujo ascendente por la succión';
+      lblFull.textContent = 'Patrón mixto (axial y radial)';
+    }
+  }
+
   return physics;
 }
 
@@ -1669,6 +1729,29 @@ function setupUI() {
   setupSeg('p-sentido', 'sentido');
   document.getElementById('p-motor').addEventListener('change', e => {
     state.motorHP = Number(e.target.value); recompute();
+  });
+  document.getElementById('p-patron-flujo').addEventListener('change', e => {
+    const val = e.target.value;
+    if (val === 'axial') {
+      state.impulsor = 'helice';
+      state.bafles = 2;
+    } else if (val === 'radial') {
+      state.impulsor = 'recta';
+      state.bafles = 2;
+    } else if (val === 'tangencial') {
+      state.bafles = 0;
+    } else if (val === 'mixto') {
+      state.impulsor = 'inclinada';
+      state.bafles = 2;
+    }
+    document.getElementById('p-impulsor').value = state.impulsor;
+    const baffleBtn = document.querySelector(`#p-bafles button[data-v="${state.bafles}"]`);
+    if (baffleBtn) {
+      document.querySelectorAll('#p-bafles button').forEach(b => b.classList.remove('on'));
+      baffleBtn.classList.add('on');
+    }
+    rebuildGeometry();
+    recompute();
   });
 
   // TABS
@@ -1778,6 +1861,19 @@ function applyStateToUI() {
       b.classList.toggle('on', v === state[key]);
     });
   });
+
+  let currentPattern = 'mixto';
+  if (state.bafles === 0) {
+    currentPattern = 'tangencial';
+  } else {
+    const imp = IMPELLERS[state.impulsor];
+    if (imp.circ === 'axial') currentPattern = 'axial';
+    else if (imp.circ === 'radial') currentPattern = 'radial';
+    else if (imp.circ === 'mixta') currentPattern = 'mixto';
+    else if (imp.circ === 'tangencial') currentPattern = 'tangencial';
+  }
+  const patronSelect = document.getElementById('p-patron-flujo');
+  if (patronSelect) patronSelect.value = currentPattern;
 }
 
 function exportCSV() {
@@ -1823,7 +1919,8 @@ const HELP = {
   sustancia: { title: 'Sustancia y Reología', what: 'Define la densidad y comportamiento del fluido.', affects: 'Altera el Reynolds y la viscosidad aparente.', up: 'Mayor torque requerido.', down: 'Facilita la turbulencia.' },
   viscosidad: { title: 'Viscosidad', what: 'Resistencia interna al flujo.', affects: 'Reduce el número de Reynolds.', up: 'Favorece el régimen laminar.', down: 'Aumenta la turbulencia.' },
   rpm: { title: 'RPM', what: 'Velocidad rotacional del impulsor.', affects: 'Incrementa la velocidad y la potencia P ∝ N³.', up: 'Mezcla más rápida.', down: 'Riesgo de estancamiento.' },
-  bafles: { title: 'Bafles', what: 'Placas verticales en las paredes.', affects: 'Rompen el vórtice central.', up: 'Pasan giro tangencial a mezcla vertical.', down: 'Se forma un vórtice rotacional.' }
+  bafles: { title: 'Bafles', what: 'Placas verticales en las paredes.', affects: 'Rompen el vórtice central.', up: 'Pasan giro tangencial a mezcla vertical.', down: 'Se forma un vórtice rotacional.' },
+  'patron-flujo': { title: 'Patrón de Flujo', what: 'Define la dirección y trayectoria predominante de las corrientes de fluido generadas.', affects: 'Altera el comportamiento de mezclado (axial, radial, tangencial o mixto).', up: 'Mejor contacto y homogeneidad.', down: 'Zonas muertas y segregación.' }
 };
 
 function setupInfoButtons() {
